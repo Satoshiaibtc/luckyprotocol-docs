@@ -29,17 +29,18 @@ If a token output is used to pay fees, its tokens go wherever that transaction r
 2. Make a salt: 16 random bytes, written as 32 lower-case hex characters.
 3. Build the payload `P = LUCKY-20|DEPLOY|<TICKER>|<SALT>` and take the script `S` of your own address, which the commit output will pay. Compute `H = SHA-256( P ‖ S )`. See [How to compute `H`](../operations/deploy.md#how-to-compute-h).
 4. **Save the ticker, the salt and the script before signing.** Without the salt, the COMMIT can never be revealed.
-5. Broadcast the COMMIT. Wait for **one** confirmation. Never broadcast the REVEAL before that.
+5. Broadcast the COMMIT. Wait for **two** confirmations. Never broadcast the REVEAL before that: a REVEAL sent at the first confirmation can, after a one-block reorganization, confirm in the COMMIT's own block. There it does not count, the COMMIT is used up and the ticker is public.
 6. Right before the reveal, check that the COMMIT is confirmed and valid, that its commit output pays your address and is unspent, that its `H` matches, and that the ticker is still free. If the COMMIT is invalid, start again with a new salt.
-7. Broadcast the REVEAL with a fast fee, spending the commit output as **input 0**, within 2,016 blocks of the COMMIT.
+7. Broadcast the REVEAL with a fast fee, spending the commit output as **input 0**, within 2,016 blocks of the COMMIT, and not when fewer than 6 blocks of that window remain.
 
-Do not spend the commit output in any other way: any spend uses up the COMMIT. While a COMMIT is open, sign an output that came from it only with `SIGHASH_ALL` or `SIGHASH_DEFAULT`, never with `SIGHASH_SINGLE | SIGHASH_ANYONECANPAY`.
+Do not spend the commit output in any other way: any spend uses up the COMMIT. While a COMMIT is open, and after it expires until its last reveal block has 6 confirmations, sign an output that came from it only with `SIGHASH_ALL` or `SIGHASH_DEFAULT`, never with `SIGHASH_SINGLE | SIGHASH_ANYONECANPAY`.
 
 ## Mine
 
 - Show the **remaining supply** before building a MINE. After the supply is used up, a MINE still pays the 546-sat fee and is credited 0.
 - Output 0 receives the yield. Pay it to the user's own address.
-- The credit is known only after the MINE confirms. Show it from the last hex digit of the confirming block's hash.
+- Offer MINE only after the ticker's reveal has **2** confirmations: a MINE in the same block as the reveal is invalid, and after a one-block reorganization a MINE sent at the first confirmation can confirm in the reveal's block or before it, and still pay its fees.
+- The credit is known only after the MINE confirms. Show it from the last hex digit of the confirming block's hash. It can still change if that block is replaced, so show it as provisional until the block has 6 confirmations.
 
 ## Send
 
@@ -81,7 +82,8 @@ Before signing, the buyer's wallet checks:
 2. Output 0 pays `price_sats` to the script of input 0.
 3. The value that the listing records for input 0 equals the real value of the token output.
 4. In your token view, the token output is unspent and holds exactly the listed amount of the ticker, and more than 0.
-5. A second source agrees. Fetch the transaction that created the token output from your own node or a block explorer. Its script and value must match, and its payload must put tokens on that output:
+5. The ticker's market is open: the block that completed its supply has at least 6 confirmations.
+6. A second source agrees. Fetch the transaction that created the token output from your own node or a block explorer. Its script and value must match, and its payload must put tokens on that output:
    - a **mined** output is output 0 of a MINE. Its amount must be the tier of its block hash. Only in the block where the ticker reached its supply cap can it be a smaller partial credit;
    - a **sent** output is the `TO_OUT` of a SEND (then `AMT` must equal the listed amount) or its `CHANGE_OUT`.
 

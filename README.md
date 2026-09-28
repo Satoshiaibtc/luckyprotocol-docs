@@ -10,7 +10,7 @@ LuckyProtocol · [app.luckyprotocolai.com](https://app.luckyprotocolai.com) · A
 - **Fair launch.** 21,000,000 tokens per ticker. Open mint. No premine, no allocation, no per-address cap. The deployer receives no tokens.
 - **Pure Bitcoin L1.** One OP_RETURN payload of at most 80 bytes per transaction. No inscriptions, no sidechain, no bridge. Tokens live on Bitcoin outputs and move with ordinary Bitcoin transactions.
 - **Deploys that cannot be copied.** Commit, then reveal. The commitment covers the committer's own output script, so a copy of it is useless.
-- **Non-custodial market.** A seller signs a listing. A buyer completes it into one on-chain transaction that pays the seller and moves the tokens together. A ticker's market opens only when it is fully minted.
+- **Non-custodial market.** A seller signs a listing. A buyer completes it into one on-chain transaction that pays the seller and moves the tokens together. A ticker's market opens only when it is fully minted and the block that completed its supply has 6 confirmations.
 - **Fixed, public fees.** 546 sats per MINE or SEND and 5,460 sats per deploy, each paid as an exact output to one published address.
 - **Open to verification.** Every balance follows from Bitcoin blocks, starting at block 969,300. Anyone can recompute it.
 
@@ -24,8 +24,8 @@ This document describes such a standard. The amount of each mint is read from th
 
 1. **Commit.** A COMMIT hides the new ticker behind a hash.
 2. **Reveal.** 1 to 2,016 blocks later, a REVEAL names the ticker and registers it with a supply of 21,000,000.
-3. **Mine.** Anyone sends MINEs. The hash of the confirming block sets the credit of each MINE, until the supply is used up.
-4. **Trade.** When the ticker is fully minted, its market opens. Holders list tokens, and buyers fill the listings on-chain.
+3. **Mine.** From the block after the reveal, anyone sends MINEs. The hash of the confirming block sets the credit of each MINE, until the supply is used up.
+4. **Trade.** When the ticker is fully minted and the block that completed its supply has 6 confirmations, its market opens. Holders list tokens, and buyers fill the listings on-chain.
 
 Section 3 explains the minting rule. The other sections build the token system around it.
 
@@ -109,13 +109,15 @@ Every ticker has a supply of exactly 21,000,000 tokens. The supply is fixed by t
 
 Minting is open. Anyone can mine any registered ticker, from any address, as often as they like. There is no per-address cap. This also means that a large minter can mint a large part of a supply. The remaining supply is public at every block, so every participant can see how close the cap is.
 
+Minting starts in the block after the reveal. A MINE in the same block as the ticker's REVEAL is invalid and credits nothing, whoever sends it, the deployer included. Nobody can mine a ticker in the block that makes it public, before anyone else can know it exists.
+
 Each MINE is credited the smaller of its yield and the remaining supply. MINEs are credited in block order, so near the cap the earlier MINEs of a block are credited first. Every tier and the supply are multiples of 100, so the supply ends at exactly 21,000,000. A MINE confirmed after that is credited 0 but still pays its protocol fee. A wallet therefore shows the remaining supply before it builds a MINE.
 
-A ticker is *minted out*, or fully minted, when its credited total reaches 21,000,000. The credited total never decreases. Tokens burned later do not reopen minting, so a minted-out ticker stays minted out.
+A ticker is *minted out*, or fully minted, when its credited total reaches 21,000,000. Burning tokens never lowers the credited total, so burned tokens do not reopen minting. Only a reorganization that removes the block that completed its supply can lower it again (Section 8).
 
 ## 5. Deploying a Ticker
 
-A ticker is 1 to 8 characters, `A`–`Z` and `0`–`9`. The first valid registration of a ticker is final.
+A ticker is 1 to 8 characters, `A`–`Z` and `0`–`9`. The first valid registration of a ticker in the chain that Bitcoin keeps is final.
 
 A deploy that names its ticker in plain text could be copied from the mempool. Someone could confirm the copy first by paying a higher fee. So a ticker is registered in two transactions:
 
@@ -188,7 +190,7 @@ Bitcoin has no contract that can hold tokens during a sale. A LUCKY-20 trade is 
 
 A listing sells the whole balance of one ticker on one token output. To sell part of a balance, the seller first splits it with a SEND back to the seller. If two buyers fill the same listing, only one transaction can confirm, and the other buyer spends nothing.
 
-**The market opens when a ticker is minted out.** Before that, the order book accepts no listing of the ticker. While anyone can still mint the ticker for the fee, a listing would put a price on something anyone can mint. It would also let a deployer sell into a distribution that is not finished.
+**The market opens when a ticker is minted out and the block that completed its supply has 6 confirmations**, about an hour later. Before that, the order book accepts no listing of the ticker. While anyone can still mint the ticker for the fee, a listing would put a price on something anyone can mint. It would also let a deployer sell into a distribution that is not finished. The wait of 6 confirmations means that a reorganization shallower than 6 blocks can no longer change the amounts the listings sell (Section 8).
 
 Nobody holds funds or tokens for anyone: not the app, not the order book. There is no bonding curve, no pooled liquidity and no market maker. Prices are what sellers ask and buyers pay. The order book can hide or delay a listing, but it cannot move a seller's coins or tokens. Before signing, the buyer's wallet checks the listed token output against the chain (Section 8).
 
@@ -201,6 +203,8 @@ The state of every ticker is a function of Bitcoin blocks and the published rule
 3. For each MINE, take the last hex digit of the confirming block's hash and look up the tier.
 
 Anyone who applies the rules to the same blocks gets the same balances. The yield of a MINE always comes from the block that confirms it in the chain that Bitcoin keeps.
+
+**Reorganizations and finality.** Now and then Bitcoin replaces its newest block with a competing one. This is a reorganization. LUCKY-20 always follows the chain that Bitcoin keeps: the effects of the replaced block are undone, and the new blocks are applied by the same rules. If the block that confirmed a MINE is replaced, the MINE is credited again from the hash of the block that confirms it in the new chain, so its tier can change. Near the cap its credit can change or become 0, and a minted-out ticker can be minting again. Registrations, transfers and trades follow the new chain the same way. A result is final once its block has 6 confirmations, about an hour. Until then the app shows it as provisional, with its number of confirmations.
 
 A single yield can be checked by hand. The first blocks of Bitcoin show how the rule reads a hash. They are far below block 969,300 and hold no MINE:
 

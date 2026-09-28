@@ -10,6 +10,7 @@
 | **COMMIT** | `LUCKY-20\|COMMIT\|<H>`. Step 1 of a deploy. It shows only a hash of the future reveal. No protocol fee. |
 | **Commit output** | Output 0 of a COMMIT, paid to the committer's own address. The REVEAL must spend it as input 0. Its script is part of `H`. The specification calls it the commit carrier. |
 | **Committer** | The address that the commit output pays. It becomes the deployer when its REVEAL registers the ticker. |
+| **Confirmation** | A block has 1 confirmation when it is the newest block of the chain, and one more for every block on top of it. A result is final at 6 confirmations. |
 | **Credit** | The tokens a MINE actually receives: the smaller of its yield and the remaining supply. |
 | **Default output** | The first output of a transaction that is not an OP_RETURN output. |
 | **Default routing** | A transaction that spends token outputs without a LUCKY-20 payload moves all their tokens to its default output. |
@@ -18,16 +19,18 @@
 | **Expected yield** | The average credit of a MINE while supply remains: (1 × 1,000 + 3 × 500 + 5 × 200 + 7 × 100) / 16 = 262.5 tokens. |
 | **Fee address** | `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n`. It receives every protocol fee. |
 | **Fill** | A buyer's transaction that completes a listing into a SEND. It pays the seller and gives the tokens to the buyer in one step. |
+| **Final** | A result whose block has 6 confirmations. Before that it is provisional: a reorganization can still change it. |
 | **H** | The commit hash: SHA-256 of the exact reveal payload followed by the commit output's script. 64 lower-case hex characters. |
 | **Input pool** | All tokens on the outputs a transaction spends, counted per ticker. |
 | **Listing** | A one-input, one-output transaction signed by a seller with `SIGHASH_SINGLE \| SIGHASH_ANYONECANPAY`. It sells the whole balance of one ticker on one token output. |
-| **MINE** | `LUCKY-20\|MINE\|<TICKER>`. Creates new tokens on output 0. The block hash sets the amount. |
-| **Minted amount** | The total credited to all MINEs of a ticker. It never decreases. |
-| **Minted out** | A ticker whose minted amount has reached 21,000,000. Also called fully minted. It stays minted out, and its market opens. |
+| **MINE** | `LUCKY-20\|MINE\|<TICKER>`. Creates new tokens on output 0. The block hash sets the amount. Valid only in a block after the ticker's reveal. |
+| **Minted amount** | The total credited to all MINEs of a ticker. Burns never lower it; only a reorganization that removes credited MINEs does. |
+| **Minted out** | A ticker whose minted amount has reached 21,000,000. Also called fully minted. Its market opens when the block that completed its supply has 6 confirmations. |
 | **Minter** | The sender of a MINE. |
 | **OP_RETURN output** | An output that holds data and can never be spent. It never holds tokens. |
 | **Payload** | The text in the OP_RETURN output, such as `LUCKY-20\|MINE\|LUCKY`. At most 80 bytes. |
 | **Protocol fee** | An output of an exact amount to the fee address: 5,460 sats for a reveal, 546 sats for a MINE or a SEND, none for a COMMIT. |
+| **Reorganization** | Bitcoin replacing its newest block (or blocks) with a competing branch. LUCKY-20 follows the chain Bitcoin keeps: the effects of the replaced blocks are undone and the new blocks are applied by the same rules, so a MINE confirmed again in another block takes the tier of that block's hash. |
 | **Residual output** | The 546-sat output that receives what a SEND does not move: output 3 of a SEND, output 4 of a fill. Always present. |
 | **REVEAL** | Step 2 of a deploy. Its payload is `LUCKY-20\|DEPLOY\|<TICKER>\|<SALT>`. It registers the ticker. Protocol fee 5,460 sats. |
 | **Salt** | 16 random bytes (32 lower-case hex characters) in the reveal payload. It keeps the ticker secret until the reveal. |
