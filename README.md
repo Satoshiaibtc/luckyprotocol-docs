@@ -1,6 +1,6 @@
 # LUCKY-20: Fair-Launch Tokens Minted by the Bitcoin Block Hash
 
-LuckyProtocol · [app.luckyprotocolai.com](https://app.luckyprotocolai.com) · Activation at Bitcoin block 969,300
+LuckyProtocol · [luckyprotocolai.com](https://luckyprotocolai.com) · Activation at Bitcoin block 969,300
 
 **Abstract.** A token on Bitcoin should not let any person decide who receives how much. In most token standards, people set the amounts: a deployer picks the supply and may keep a share, and each minter picks how much to claim. LUCKY-20 lets Bitcoin decide. A MINE transaction names a ticker and nothing else. The last hex digit of the hash of the block that confirms it sets the credit: 100, 200, 500 or 1,000 tokens, 262.5 on average. The minter, the deployer and the project cannot choose that hash, and anyone can check it from public block data. Every ticker has a fixed supply of 21,000,000 tokens, with no premine, no allocation and no per-address cap. Each operation is one small OP_RETURN payload in an ordinary Bitcoin transaction, and tokens sit on Bitcoin outputs: there is no inscription, no sidechain and no bridge. A new ticker is registered in two steps, commit and reveal. The commitment is bound to the committer's own output script, so a registration seen in the mempool cannot be copied. When a ticker is fully minted, its tokens trade through seller-signed listings that settle atomically on-chain, with no custodian.
 
@@ -265,7 +265,7 @@ We have described a token standard on Bitcoin in which no person sets the mint a
 | --- | --- |
 | Operations | [Deploy](operations/deploy.md) · [Mine](operations/mine.md) · [Send](operations/send.md) |
 | Building transactions | [Wallets](developers/wallets.md) |
-| Specification: the complete rules, with test vectors | [app.luckyprotocolai.com/PROTOCOL.md](https://app.luckyprotocolai.com/PROTOCOL.md) |
-| App | [app.luckyprotocolai.com](https://app.luckyprotocolai.com) |
+| Specification: the complete rules, with test vectors | [luckyprotocolai.com/PROTOCOL.md](https://luckyprotocolai.com/PROTOCOL.md) |
+| App | [luckyprotocolai.com](https://luckyprotocolai.com) |
 
 Where this document and the specification differ, the specification is correct.

@@ -1,6 +1,6 @@
 # Wallets
 
-This page is for builders of wallets and apps. It lists what a wallet must do to build LUCKY-20 transactions without harming its users. The payloads and layouts are on the operation pages: [Deploy](../operations/deploy.md), [Mine](../operations/mine.md) and [Send](../operations/send.md). The complete rules are in the [specification](https://app.luckyprotocolai.com/PROTOCOL.md).
+This page is for builders of wallets and apps. It lists what a wallet must do to build LUCKY-20 transactions without harming its users. The payloads and layouts are on the operation pages: [Deploy](../operations/deploy.md), [Mine](../operations/mine.md) and [Send](../operations/send.md). The complete rules are in the [specification](https://luckyprotocolai.com/PROTOCOL.md).
 
 A wallet needs one thing beyond a normal Bitcoin wallet: a view of which of its outputs hold tokens, and how many. That view is computed from Bitcoin blocks by the rules of the specification. It must have processed every block up to the chain tip before the wallet relies on it.
 
@@ -99,4 +99,4 @@ If a fill with a low fee is waiting in the mempool, the cancel must replace it u
 
 ## The reference app
 
-The app at [app.luckyprotocolai.com](https://app.luckyprotocolai.com) holds no keys. It builds unsigned PSBTs and asks the connected wallet (UniSat or OKX Wallet) to sign them.
+The app at [luckyprotocolai.com](https://luckyprotocolai.com) holds no keys. It builds unsigned PSBTs and asks the connected wallet (UniSat or OKX Wallet) to sign them.

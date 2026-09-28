@@ -56,4 +56,4 @@ Example: a MINE of `LUCKY` confirms in a block whose hash ends in `…a8c3`. The
 - **Tokens on the inputs** of a MINE, of every ticker, also go to output 0, even when the MINE is invalid. They are burned only when output 0 is missing or is an OP_RETURN output.
 - **Never pay for a MINE with a token output.** See [Wallets](../developers/wallets.md#never-spend-tokens-as-fees).
 - Transactions confirmed below block 969,300 do nothing.
-- Complete rules: the [specification](https://app.luckyprotocolai.com/PROTOCOL.md).
+- Complete rules: the [specification](https://luckyprotocolai.com/PROTOCOL.md).

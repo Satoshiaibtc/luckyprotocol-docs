@@ -35,7 +35,7 @@
 | **REVEAL** | Step 2 of a deploy. Its payload is `LUCKY-20\|DEPLOY\|<TICKER>\|<SALT>`. It registers the ticker. Protocol fee 5,460 sats. |
 | **Salt** | 16 random bytes (32 lower-case hex characters) in the reveal payload. It keeps the ticker secret until the reveal. |
 | **SEND** | `LUCKY-20\|SEND\|<TICKER>\|<AMT>\|<TO_OUT>\|<CHANGE_OUT>`. Moves `AMT` of one ticker to `TO_OUT` and everything else to `CHANGE_OUT`. |
-| **Specification** | The complete rulebook, with test vectors: [PROTOCOL.md](https://app.luckyprotocolai.com/PROTOCOL.md). |
+| **Specification** | The complete rulebook, with test vectors: [PROTOCOL.md](https://luckyprotocolai.com/PROTOCOL.md). |
 | **Supply** | 21,000,000 tokens for every ticker. Fixed by the rules. Not a field of any payload. |
 | **Ticker** | 1 to 8 characters, `A`–`Z` and `0`–`9`. The first valid reveal registers it. |
 | **Tier** | One of the four yields: 100, 200, 500 or 1,000 tokens. |

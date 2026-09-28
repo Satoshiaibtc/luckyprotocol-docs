@@ -100,4 +100,4 @@ There is no supply field and no amount field. The supply is always 21,000,000, a
 - **Protect an open commit.** While a COMMIT is open (not yet revealed or expired), never sign its commit output with `SIGHASH_SINGLE | SIGHASH_ANYONECANPAY` and never list it for sale. This also applies to a commit output that someone else's COMMIT paid to your address. Such a signature covers only one input and one output, so its holder could complete it into a REVEAL that names you as the deployer of a ticker you never chose.
 - **Every deploy needs a COMMIT.** A DEPLOY without a salt (`LUCKY-20|DEPLOY|<TICKER>`) never registers a ticker.
 - **Tokens on the inputs** of a COMMIT or a REVEAL go to the default output: the first output that is not an OP_RETURN output. In the reference layouts, that is the commit output of a COMMIT and the proof output of a REVEAL.
-- Wallet steps: [Wallets](../developers/wallets.md#deploy). Complete rules: the [specification](https://app.luckyprotocolai.com/PROTOCOL.md).
+- Wallet steps: [Wallets](../developers/wallets.md#deploy). Complete rules: the [specification](https://luckyprotocolai.com/PROTOCOL.md).
