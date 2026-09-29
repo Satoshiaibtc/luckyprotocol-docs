@@ -69,7 +69,7 @@ A listing signed with another version or `nSequence` can never be filled. Any BT
 | 1 | 546 sats | buyer (receives the tokens) |
 | 2 | 546 sats | buyer (residual output, always present) |
 | 3 | 546 sats | fee address |
-| 4 | 0 | OP_RETURN `{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}` |
+| 4 | 0 | OP_RETURN with the SEND payload |
 | 5 | change | buyer, BTC change (optional) |
 
 The buyer adds BTC inputs after input 0, signs them, completes input 0 with the seller's signature, and broadcasts. Keep the listing at input 0. If two buyers fill the same listing, only one transaction confirms.

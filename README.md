@@ -32,11 +32,38 @@ Section 3 explains the minting rule. The other sections build the token system a
 
 Every LUCKY-20 operation is an ordinary Bitcoin transaction with one OP_RETURN output. That output holds a short JSON payload, in exactly one compact form per operation: no spaces, the keys in a fixed order. Its `p` is always `lucky-20`, and `op` names the operation. There are three operations and no others:
 
-| Operation | Payload | Purpose |
-| --- | --- | --- |
-| DEPLOY | `{"p":"lucky-20","op":"deploy","tick":"<TICKER>"}` | Registers a new ticker with a supply of 21,000,000. |
-| MINE | `{"p":"lucky-20","op":"mine","tick":"<TICKER>"}` | Creates new tokens on output 0 of the transaction. |
-| SEND | `{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}` | Moves `AMT` tokens to output 1 and the rest to output 2. |
+**DEPLOY** registers a new ticker with a supply of 21,000,000:
+
+```
+{
+  "p": "lucky-20",
+  "op": "deploy",
+  "tick": "<TICKER>"
+}
+```
+
+**MINE** creates new tokens on output 0 of the transaction:
+
+```
+{
+  "p": "lucky-20",
+  "op": "mine",
+  "tick": "<TICKER>"
+}
+```
+
+**SEND** moves `AMT` tokens to output 1 and the rest to output 2:
+
+```
+{
+  "p": "lucky-20",
+  "op": "send",
+  "tick": "<TICKER>",
+  "amt": "<AMT>"
+}
+```
+
+They are shown with line breaks for reading. On chain each payload is one line with no spaces, for example `{"p":"lucky-20","op":"mine","tick":"LUCKY"}`.
 
 Any other spelling — a space, another key order, a number without quotes — is not a LUCKY-20 payload: only these exact bytes count.
 
@@ -56,7 +83,11 @@ When a transaction spends token outputs, their tokens form one *input pool*, cou
 A MINE names a ticker and nothing else:
 
 ```
-{"p":"lucky-20","op":"mine","tick":"<TICKER>"}
+{
+  "p": "lucky-20",
+  "op": "mine",
+  "tick": "<TICKER>"
+}
 ```
 
 It states no amount. When the transaction confirms, its yield is read from the hash of the block that contains it, written the way Bitcoin nodes and block explorers print it. Only the last hex digit counts:
@@ -122,7 +153,11 @@ A ticker is 1 to 8 characters, `A`–`Z` and `0`–`9`. The first valid registra
 A ticker is registered by one transaction:
 
 ```
-{"p":"lucky-20","op":"deploy","tick":"<TICKER>"}
+{
+  "p": "lucky-20",
+  "op": "deploy",
+  "tick": "<TICKER>"
+}
 ```
 
 The DEPLOY registers the ticker when it pays the 5,460-sat protocol fee and the ticker is still free. When two valid DEPLOYs name the same ticker, the first in block order — block height, then position in the block — registers it. The other registers nothing and still pays its protocol fee and its network fee.
@@ -134,7 +169,12 @@ The deployer is the address that signed the whole DEPLOY transaction and put the
 ## 6. Moving Tokens
 
 ```
-{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}
+{
+  "p": "lucky-20",
+  "op": "send",
+  "tick": "<TICKER>",
+  "amt": "<AMT>"
+}
 ```
 
 A SEND moves `AMT` whole tokens of one ticker to output 1. Everything else in the input pool goes to output 2: the rest of that ticker and all of every other ticker. The outputs are fixed; the payload names none. Amounts are whole numbers from 1 to 21,000,000, written in quotes.

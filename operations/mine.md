@@ -5,10 +5,14 @@ A MINE creates new tokens of a registered ticker. It names the ticker and nothin
 ## Example
 
 ```
-{"p":"lucky-20","op":"mine","tick":"LUCKY"}
+{
+  "p": "lucky-20",
+  "op": "mine",
+  "tick": "LUCKY"
+}
 ```
 
-The payload is compact JSON: no spaces, the keys in this order, no other key.
+Shown with line breaks for reading. On chain the payload is one line with no spaces. The payload is compact JSON: no spaces, the keys in this order, no other key.
 
 | Key | Required? | Description |
 | --- | --- | --- |
@@ -41,7 +45,7 @@ Example: a MINE of `LUCKY` confirms in a block whose hash ends in `…a8c3`. The
 | --- | --- | --- |
 | 0 | 546 sats | you: the **yield output** |
 | 1 | 546 sats | fee address `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n` |
-| 2 | 0 | OP_RETURN `{"p":"lucky-20","op":"mine","tick":"<TICKER>"}` |
+| 2 | 0 | OP_RETURN with the payload above |
 | 3 | change | you (optional) |
 
 ## Notes

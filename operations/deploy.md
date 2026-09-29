@@ -5,10 +5,14 @@ A deploy registers a new ticker with a fixed supply of 21,000,000 tokens. It tak
 ## Example
 
 ```
-{"p":"lucky-20","op":"deploy","tick":"LUCKY"}
+{
+  "p": "lucky-20",
+  "op": "deploy",
+  "tick": "LUCKY"
+}
 ```
 
-The payload is compact JSON: no spaces, the keys in this order, no other key.
+Shown with line breaks for reading. On chain the payload is one line with no spaces. The payload is compact JSON: no spaces, the keys in this order, no other key.
 
 | Key | Required? | Description |
 | --- | --- | --- |
@@ -24,7 +28,7 @@ There is no supply key and no amount key. The supply is always 21,000,000, and t
 | --- | --- | --- |
 | 0 | 546 sats | you (proof output) |
 | 1 | 5,460 sats | fee address `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n` |
-| 2 | 0 | OP_RETURN `{"p":"lucky-20","op":"deploy","tick":"<TICKER>"}` |
+| 2 | 0 | OP_RETURN with the payload above |
 | 3 | change | you (optional) |
 
 ## The DEPLOY registers the ticker when both of these hold

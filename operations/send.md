@@ -5,10 +5,15 @@ A SEND moves tokens of one ticker from the token outputs a transaction spends to
 ## Example
 
 ```
-{"p":"lucky-20","op":"send","tick":"LUCKY","amt":"1200"}
+{
+  "p": "lucky-20",
+  "op": "send",
+  "tick": "LUCKY",
+  "amt": "1200"
+}
 ```
 
-The payload is compact JSON: no spaces, the keys in this order, no other key.
+Shown with line breaks for reading. On chain the payload is one line with no spaces. The payload is compact JSON: no spaces, the keys in this order, no other key.
 
 | Key | Required? | Description |
 | --- | --- | --- |
@@ -28,7 +33,7 @@ The payload names no output: the positions are fixed. This example moves 1,200 `
 | 0 | 546 sats | fee address `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n` |
 | 1 | 546 sats | recipient (receives `AMT`) |
 | 2 | 546 sats | you (the **residual output**, always present) |
-| 3 | 0 | OP_RETURN `{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}` |
+| 3 | 0 | OP_RETURN with the payload above |
 | 4 | change | you, BTC change (optional; it never carries tokens) |
 
 ## Result
