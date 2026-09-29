@@ -2,7 +2,7 @@
 
 | Term | Meaning |
 | --- | --- |
-| **Activation height** | Block 969,300. Transactions in earlier blocks do nothing. |
+| **Activation height** | Block 969,600. Transactions in earlier blocks do nothing. |
 | **Bitcoin miner** | The party that finds a Bitcoin block. Not the same as a minter. |
 | **Block hash** | The hash of a Bitcoin block, written the way Bitcoin nodes and block explorers print it (it starts with zeros). Its last hex digit sets the tier of every MINE in that block. |
 | **Burn** | Tokens that are routed to no output. This happens only when the rules leave them no usable output. Burned tokens do not lower the minted amount. |

@@ -83,7 +83,7 @@ There is no supply field and no amount field. The supply is always 21,000,000, a
 
 1. Its input 0 spends the commit output of a COMMIT that is not invalid (see the first note below).
 2. That COMMIT's `H` equals SHA-256 of this payload and the commit output's script.
-3. The COMMIT confirmed at or after block 969,300.
+3. The COMMIT confirmed at or after block 969,600.
 4. The COMMIT confirmed in an earlier block: the REVEAL is at least 1 block after it.
 5. The REVEAL confirms at most 2,016 blocks after the COMMIT.
 6. An output pays exactly 5,460 sats to the fee address.

@@ -60,5 +60,5 @@ vout3      { LUCKY: 300, ABC: 500 }     back to you
 - **Default routing.** A Bitcoin transaction without a LUCKY-20 payload moves all tokens on its inputs to its default output. The tokens are not destroyed. The rare cases in which tokens are burned are listed in the specification.
 - **Tokens never go to an OP_RETURN output.**
 - **A trade is a SEND.** A fill uses `TO_OUT` = 1 and `CHANGE_OUT` = 4. See [Wallets](../developers/wallets.md#trading).
-- Transactions confirmed below block 969,300 do nothing.
+- Transactions confirmed below block 969,600 do nothing.
 - Complete rules: the [specification](https://luckyprotocolai.com/PROTOCOL.md).
