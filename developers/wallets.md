@@ -107,4 +107,12 @@ If a fill with a low fee is waiting in the mempool, the cancel must replace it u
 
 ## The reference app
 
-The app at [luckyprotocolai.com](https://luckyprotocolai.com) holds no keys. It builds unsigned PSBTs and asks the connected wallet (UniSat or OKX Wallet) to sign them.
+The app at [luckyprotocolai.com](https://luckyprotocolai.com) works with the UniSat wallet. It holds no keys. It builds unsigned PSBTs and asks UniSat to sign them.
+
+To pay fees, the app starts from the list of plain BTC outputs that UniSat reports for the connected address. UniSat leaves inscription and rune outputs out of that list. The app then checks every listed output against the confirmed UTXO set of its own Bitcoin node, and uses it only when:
+
+- the node has it as unspent, with at least 1 confirmation;
+- its script is the connected address's script, and its value is the value UniSat reported;
+- the token view shows no tokens on it.
+
+An output that the node does not have as confirmed yet waits for its confirmation. The app also applies the rules in [Never spend tokens as fees](#never-spend-tokens-as-fees): it leaves out outputs of 546 sats or less and the inputs of its own unconfirmed transactions. If the check cannot be made, the app builds nothing and asks the user to try again.
