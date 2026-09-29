@@ -265,7 +265,5 @@ We have described a token standard on Bitcoin in which no person sets the mint a
 | --- | --- |
 | Operations | [Deploy](operations/deploy.md) · [Mine](operations/mine.md) · [Send](operations/send.md) |
 | Building transactions | [Wallets](developers/wallets.md) |
-| Specification: the complete rules, with test vectors | [luckyprotocolai.com/PROTOCOL.md](https://luckyprotocolai.com/PROTOCOL.md) |
 | App | [luckyprotocolai.com](https://luckyprotocolai.com) |
 
-Where this document and the specification differ, the specification is correct.

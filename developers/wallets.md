@@ -1,6 +1,6 @@
 # Wallets
 
-This page is for builders of wallets and apps. It lists what a wallet must do to build LUCKY-20 transactions without harming its users. The payloads and layouts are on the operation pages: [Deploy](../operations/deploy.md), [Mine](../operations/mine.md) and [Send](../operations/send.md). The complete rules are in the [specification](https://luckyprotocolai.com/PROTOCOL.md).
+This page is for builders of wallets and apps. It lists what a wallet must do to build LUCKY-20 transactions without harming its users. The payloads and layouts are on the operation pages: [Deploy](../operations/deploy.md), [Mine](../operations/mine.md) and [Send](../operations/send.md).
 
 A wallet needs one thing beyond a normal Bitcoin wallet: a view of which of its outputs hold tokens, and how many. That view is computed from Bitcoin blocks by the rules of the specification. It must have processed every block up to the chain tip before the wallet relies on it.
 
