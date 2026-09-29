@@ -53,7 +53,7 @@ Do not spend the commit output in any other way: any spend uses up the COMMIT. W
 
 | Part | Value |
 | --- | --- |
-| Inputs | Exactly one: the token output. It must hold **one ticker only**; the listing sells its whole balance. |
+| Inputs | Exactly one: the token output, holding at least 546 sats. It must hold **one ticker only**; the listing sells its whole balance. |
 | Outputs | Exactly one: `price_sats` to **the same script** as the input. |
 | `price_sats` | At least 546, and at least the token output's own BTC value. |
 | Signature | Input 0 signed with `SIGHASH_SINGLE \| SIGHASH_ANYONECANPAY` (`0x83`), not finalized. |
@@ -76,6 +76,8 @@ A listing signed with another version or `nSequence` can never be filled. Any BT
 
 The buyer adds BTC inputs after input 0, signs them, completes input 0 with the seller's signature, and broadcasts. If two buyers fill the same listing, only one transaction confirms.
 
+A spend of the listed output counts as a trade only when it carries the seller's `0x83` signature and the matching output pays the seller at least `price_sats`. The buyer is the output that receives the tokens.
+
 Before signing, the buyer's wallet checks:
 
 1. The listing has exactly one input and one output, and input 0 carries a signature with sighash type `0x83`.
@@ -93,7 +95,9 @@ Stop if the checks disagree. The creating transaction cannot confirm every amoun
 
 ### Cancel
 
-A signed listing can be filled by anyone who holds it. The only real cancel is to **move the tokens on-chain** with a SEND to yourself. Listing the same token output again at a lower price does not cancel the earlier signed listing.
+A signed listing can be filled by anyone who holds it. The only real cancel is to **move the tokens on-chain** with a SEND to yourself. Listing the same token output again at a lower price does not cancel the earlier signed listing, and neither does its expiry from the order book: anyone who kept a copy can still fill it.
+
+Sign the cancel with your wallet's ordinary signature type (`SIGHASH_DEFAULT` or `SIGHASH_ALL`), never `0x83`. A spend of the listed output signed `0x83` that pays you the price is a sale.
 
 If a fill with a low fee is waiting in the mempool, the cancel must replace it under the replace-by-fee rules (BIP125). It must pay a higher fee rate than that fill, by at least the incremental relay fee. Its total fee must be at least the fees of that fill and of everything that depends on it, plus the relay fee for its own size.
 
