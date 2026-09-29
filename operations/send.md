@@ -1,36 +1,34 @@
 # Send
 
-A SEND moves tokens of one ticker from the token outputs a transaction spends to one of its outputs. Everything else goes to a second output that you name. A market fill is also a SEND.
+A SEND moves tokens of one ticker from the token outputs a transaction spends to output 1. Everything else goes to output 2. A market fill is also a SEND.
 
 ## Example
 
 ```
-LUCKY-20|SEND|LUCKY|1200|0|3
+{"p":"lucky-20","op":"send","tick":"LUCKY","amt":"1200"}
 ```
 
-Fields are separated by `|` and read by position.
+The payload is compact JSON: no spaces, the keys in this order, no other key.
 
 | Key | Required? | Description |
 | --- | --- | --- |
-| `protocol` | Yes | Field 0. Always `LUCKY-20`. |
-| `op` | Yes | Field 1. `SEND`, in upper case. |
-| `tick` | Yes | Field 2. The ticker to move: 1 to 8 characters, `A`–`Z` and `0`–`9`. |
-| `amt` | Yes | Field 3. `AMT`: whole tokens to move, 1 to 21,000,000. Decimal digits only: no sign, no decimal point, no leading zero. |
-| `to` | Yes | Field 4. `TO_OUT`: the index of the output that receives `AMT`, 0 to 255. |
-| `change` | Yes | Field 5. `CHANGE_OUT`: the index of the output that receives everything else, 0 to 255. It must differ from `TO_OUT`. |
+| `p` | Yes | Always `lucky-20`, in lower case. |
+| `op` | Yes | `send`, in lower case. |
+| `tick` | Yes | The ticker to move: 1 to 8 characters, `A`–`Z` and `0`–`9`, in quotes. |
+| `amt` | Yes | Whole tokens to move, 1 to 21,000,000, in quotes. Decimal digits only: no sign, no decimal point, no leading zero. |
 
-All six fields are required. A payload with a field missing, an extra field, or a field that breaks its rule is not a SEND. The transaction is then treated like one without a LUCKY-20 payload (see Default routing below).
+A payload with a key missing, an extra key, another order, a space, or a value that breaks its rule is not a SEND. The transaction is then treated like one without a LUCKY-20 payload (see Default routing below).
 
-This example moves 1,200 `LUCKY` to output 0 and everything else to output 3.
+The payload names no output: the positions are fixed. This example moves 1,200 `LUCKY` to output 1 and everything else to output 2.
 
 ## Reference transaction
 
 | vout | value | to |
 | --- | --- | --- |
-| 0 | 546 sats | recipient (`TO_OUT`, receives `AMT`) |
-| 1 | 546 sats | fee address `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n` |
-| 2 | 0 | OP_RETURN `LUCKY-20\|SEND\|<TICKER>\|<AMT>\|0\|3` |
-| 3 | 546 sats | you (`CHANGE_OUT`, the **residual output**, always present) |
+| 0 | 546 sats | fee address `bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n` |
+| 1 | 546 sats | recipient (receives `AMT`) |
+| 2 | 546 sats | you (the **residual output**, always present) |
+| 3 | 0 | OP_RETURN `{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}` |
 | 4 | change | you, BTC change (optional; it never carries tokens) |
 
 ## Result
@@ -38,26 +36,29 @@ This example moves 1,200 `LUCKY` to output 0 and everything else to output 3.
 The SEND is **applied** when all of these hold:
 
 - the inputs hold at least `AMT` of the ticker;
-- output `TO_OUT` exists and is not an OP_RETURN output;
+- output 1 exists and is not an OP_RETURN output;
 - an output pays exactly 546 sats to the fee address.
 
-Then `AMT` goes to output `TO_OUT`. The rest of that ticker, and every other ticker on the inputs, goes to output `CHANGE_OUT`.
+Then `AMT` goes to output 1. The rest of that ticker, and every other ticker on the inputs, goes to output 2.
 
-When the SEND is not applied, nothing goes to output `TO_OUT`. All tokens on the inputs go to output `CHANGE_OUT`.
+When the SEND is not applied, nothing goes to output 1. All tokens on the inputs go to output 2.
+
+If output 2 is missing or is an OP_RETURN output, what it would receive goes to the default output instead: the first output that is not an OP_RETURN output.
 
 ```
 inputs     { LUCKY: 1,500, ABC: 500 }
-payload    LUCKY-20|SEND|LUCKY|1200|0|3
-vout0      { LUCKY: 1,200 }             the recipient
-vout3      { LUCKY: 300, ABC: 500 }     back to you
+payload    {"p":"lucky-20","op":"send","tick":"LUCKY","amt":"1200"}
+vout1      { LUCKY: 1,200 }             the recipient
+vout2      { LUCKY: 300, ABC: 500 }     back to you
 ```
 
 ## Notes
 
-- **One ticker per SEND.** Only the named ticker moves to `TO_OUT`. One SEND can therefore split a token output that holds several tickers.
-- **Keep the residual output.** Output 3 exists even when it receives nothing. Never drop it as dust. It keeps tokens off the BTC change output, so a later plain BTC spend of the change cannot carry them away.
-- **An unusable `CHANGE_OUT`.** If output `CHANGE_OUT` is missing or is an OP_RETURN output, what it would receive goes to the default output instead: the first output that is not an OP_RETURN output.
-- **Default routing.** A Bitcoin transaction without a LUCKY-20 payload moves all tokens on its inputs to its default output. The tokens are not destroyed. The rare cases in which tokens are burned are listed in the specification.
+- **One ticker per SEND.** Only the named ticker moves to output 1. One SEND can therefore split a token output that holds several tickers.
+- **Keep the residual output.** Output 2 exists even when it receives nothing. Never drop it as dust. Without it, what it would receive goes to the first output — the fee address in this layout. It also keeps tokens off the BTC change output, so a later plain BTC spend of the change cannot carry them away.
+- **Write the payload byte for byte.** Build it from the template above. Many JSON libraries add a space after `:` or `,`, or write `amt` as a number, unless told otherwise. Such a payload is not a SEND: the transaction is a plain spend, and every token on its inputs goes to output 0 — the fee address in this layout.
+- **Default routing.** A Bitcoin transaction without a LUCKY-20 payload moves all tokens on its inputs to its default output, the first output that is not an OP_RETURN output. The tokens are not destroyed. They are burned only when the transaction has no such output, or when that output has no address.
+- **Listed outputs.** An input signed as a market listing moves only through a SEND of its own ticker that is applied. Otherwise its tokens go to the output its signature pays, the seller's. See [Wallets](../developers/wallets.md#trading).
 - **Tokens never go to an OP_RETURN output.**
-- **A trade is a SEND.** A fill uses `TO_OUT` = 1 and `CHANGE_OUT` = 4. See [Wallets](../developers/wallets.md#trading).
+- **A trade is a SEND.** A fill keeps the seller's payment at output 0, the tokens at output 1, the residual at output 2 and the fee at output 3. See [Wallets](../developers/wallets.md#trading).
 - Transactions confirmed below block 969,600 do nothing.

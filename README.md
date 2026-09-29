@@ -2,15 +2,15 @@
 
 LuckyProtocol · [luckyprotocolai.com](https://luckyprotocolai.com) · Activation at Bitcoin block 969,600
 
-**Abstract.** A token on Bitcoin should not let any person decide who receives how much. In most token standards, people set the amounts: a deployer picks the supply and may keep a share, and each minter picks how much to claim. LUCKY-20 lets Bitcoin decide. A MINE transaction names a ticker and nothing else. The last hex digit of the hash of the block that confirms it sets the credit: 100, 200, 500 or 1,000 tokens, 262.5 on average. The minter, the deployer and the project cannot choose that hash, and anyone can check it from public block data. Every ticker has a fixed supply of 21,000,000 tokens, with no premine, no allocation and no per-address cap. Each operation is one small OP_RETURN payload in an ordinary Bitcoin transaction, and tokens sit on Bitcoin outputs: there is no inscription, no sidechain and no bridge. A new ticker is registered in two steps, commit and reveal. The commitment is bound to the committer's own output script, so a registration seen in the mempool cannot be copied. When a ticker is fully minted, its tokens trade through seller-signed listings that settle atomically on-chain, with no custodian.
+**Abstract.** A token on Bitcoin should not let any person decide who receives how much. In most token standards, people set the amounts: a deployer picks the supply and may keep a share, and each minter picks how much to claim. LUCKY-20 lets Bitcoin decide. A MINE transaction names a ticker and nothing else. The last hex digit of the hash of the block that confirms it sets the credit: 100, 200, 500 or 1,000 tokens, 262.5 on average. The minter, the deployer and the project cannot choose that hash, and anyone can check it from public block data. Every ticker has a fixed supply of 21,000,000 tokens, with no premine, no allocation and no per-address cap. Each operation is one small JSON payload in an OP_RETURN output of an ordinary Bitcoin transaction, and tokens sit on Bitcoin outputs: there is no inscription, no sidechain and no bridge. A new ticker is registered by one DEPLOY transaction; the first valid DEPLOY in block order registers it. When a ticker is fully minted, its tokens trade through seller-signed listings that settle atomically on-chain, with no custodian.
 
 ## At a glance
 
 - **Minted by Bitcoin itself.** The last hex digit of the confirming block's hash sets each MINE's yield: `f` → 1,000; `c`–`e` → 500; `7`–`b` → 200; `0`–`6` → 100. The expected yield is 262.5 tokens per MINE. Nobody chooses it: not the minter, not the deployer, not the project.
 - **Fair launch.** 21,000,000 tokens per ticker. Open mint. No premine, no allocation, no per-address cap. The deployer receives no tokens.
-- **Pure Bitcoin L1.** One OP_RETURN payload of at most 80 bytes per transaction. No inscriptions, no sidechain, no bridge. Tokens live on Bitcoin outputs and move with ordinary Bitcoin transactions.
-- **Deploys that cannot be copied.** Commit, then reveal. The commitment covers the committer's own output script, so a copy of it is useless.
-- **Non-custodial market.** A seller signs a listing. A buyer completes it into one on-chain transaction that pays the seller and moves the tokens together. A ticker's market opens only when it is fully minted and the block that completed its supply has 6 confirmations.
+- **Pure Bitcoin L1.** One OP_RETURN payload of at most 63 bytes per transaction, in compact JSON. No inscriptions, no sidechain, no bridge. Tokens live on Bitcoin outputs and move with ordinary Bitcoin transactions.
+- **One-transaction deploys.** A single DEPLOY transaction registers a ticker; when several name it, the first valid one in block order registers it. A pending DEPLOY is visible in the mempool, so the app suggests a fast fee and can speed it up.
+- **Non-custodial market.** A seller signs a listing. A buyer completes it into one on-chain transaction that pays the seller and moves the tokens together. A ticker's market opens only when it is fully minted and the block that completed its supply has 6 confirmations. Every sale pays the 546-sat SEND fee: without it the seller is paid and keeps the tokens.
 - **Fixed, public fees.** 546 sats per MINE or SEND and 5,460 sats per deploy, each paid as an exact output to one published address.
 - **Open to verification.** Every balance follows from Bitcoin blocks, starting at block 969,600. Anyone can recompute it.
 
@@ -20,27 +20,27 @@ Tokens on Bitcoin are usually issued by people. A deployer picks the supply and 
 
 What is needed is a token whose issuance is set by Bitcoin rather than by a person. Every mint amount should come from data that no participant controls and that anyone can check. The supply should be fixed and open to everyone from the start. The tokens should live in ordinary Bitcoin transactions. Trading them should not require handing them to anyone.
 
-This document describes such a standard. The amount of each mint is read from the hash of the Bitcoin block that confirms it. A ticker goes through four steps:
+This document describes such a standard. The amount of each mint is read from the hash of the Bitcoin block that confirms it. A ticker goes through three steps:
 
-1. **Commit.** A COMMIT hides the new ticker behind a hash.
-2. **Reveal.** 1 to 2,016 blocks later, a REVEAL names the ticker and registers it with a supply of 21,000,000.
-3. **Mine.** From the block after the reveal, anyone sends MINEs. The hash of the confirming block sets the credit of each MINE, until the supply is used up.
-4. **Trade.** When the ticker is fully minted and the block that completed its supply has 6 confirmations, its market opens. Holders list tokens, and buyers fill the listings on-chain.
+1. **Deploy.** A DEPLOY names the ticker and registers it with a supply of 21,000,000.
+2. **Mine.** From the block after the DEPLOY, anyone sends MINEs. The hash of the confirming block sets the credit of each MINE, until the supply is used up.
+3. **Trade.** When the ticker is fully minted and the block that completed its supply has 6 confirmations, its market opens. Holders list tokens, and buyers fill the listings on-chain.
 
 Section 3 explains the minting rule. The other sections build the token system around it.
 
 ## 2. Tokens on Bitcoin Outputs
 
-Every LUCKY-20 operation is an ordinary Bitcoin transaction with one OP_RETURN output. That output holds a short text payload of at most 80 bytes, with fields separated by `|`. Field 0 is always `LUCKY-20`. Field 1 names the operation. There are four operations and no others:
+Every LUCKY-20 operation is an ordinary Bitcoin transaction with one OP_RETURN output. That output holds a short JSON payload, in exactly one compact form per operation: no spaces, the keys in a fixed order. Its `p` is always `lucky-20`, and `op` names the operation. There are three operations and no others:
 
 | Operation | Payload | Purpose |
 | --- | --- | --- |
-| COMMIT | `LUCKY-20\|COMMIT\|<H>` | Step 1 of a deploy. Hides the ticker behind a hash. |
-| DEPLOY | `LUCKY-20\|DEPLOY\|<TICKER>\|<SALT>` | Step 2 of a deploy, the reveal. Registers the ticker. |
-| MINE | `LUCKY-20\|MINE\|<TICKER>` | Creates new tokens on output 0 of the transaction. |
-| SEND | `LUCKY-20\|SEND\|<TICKER>\|<AMT>\|<TO_OUT>\|<CHANGE_OUT>` | Moves tokens to chosen outputs. |
+| DEPLOY | `{"p":"lucky-20","op":"deploy","tick":"<TICKER>"}` | Registers a new ticker with a supply of 21,000,000. |
+| MINE | `{"p":"lucky-20","op":"mine","tick":"<TICKER>"}` | Creates new tokens on output 0 of the transaction. |
+| SEND | `{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}` | Moves `AMT` tokens to output 1 and the rest to output 2. |
 
-Tokens are bound to transaction outputs. An output that holds tokens is a *token output*. The specification calls it a *carrier*. Whoever can spend it owns its tokens. One output can hold several tickers:
+Any other spelling — a space, another key order, a number without quotes — is not a LUCKY-20 payload: only these exact bytes count.
+
+Tokens are bound to transaction outputs. An output that holds tokens is a *token output*. The app calls it a *carrier*. Whoever can spend it owns its tokens. One output can hold several tickers:
 
 | Output | Value | Tokens |
 | --- | --- | --- |
@@ -49,14 +49,14 @@ Tokens are bound to transaction outputs. An output that holds tokens is a *token
 
 There are no accounts, no contract and no second ledger. By wallet convention a token output holds 546 sats. Amounts are whole tokens, with no decimals.
 
-When a transaction spends token outputs, their tokens form one *input pool*, counted per ticker. The payload says which outputs receive the pool. A transaction that spends token outputs but has no LUCKY-20 payload moves the whole pool to its first output that is not an OP_RETURN output. This is *default routing*. An ordinary wallet that spends a token output therefore moves the tokens. It does not destroy them. Tokens never go to an OP_RETURN output. They are burned only in the few cases where the rules leave them no usable output. The specification lists these cases.
+When a transaction spends token outputs, their tokens form one *input pool*, counted per ticker. The operation decides which outputs receive the pool. A transaction that spends token outputs but has no LUCKY-20 payload moves the whole pool to its first output that is not an OP_RETURN output. This is *default routing*. An ordinary wallet that spends a token output therefore moves the tokens. It does not destroy them. Tokens never go to an OP_RETURN output. They are burned only in the few cases where the rules leave them no usable output. A MINE burns them when its output 0 is missing or is an OP_RETURN output. Where tokens go to the first output that is not an OP_RETURN output, they are burned when the transaction has no such output, or when that output has no address. An input signed as a market listing is the one exception to all of this: its tokens move only with a SEND of their ticker that is applied, fee included, and otherwise go to the seller's payment output (Section 7; the [Glossary](glossary.md), under Listing-signed input, says exactly which inputs count).
 
 ## 3. Minting by Block Hash
 
 A MINE names a ticker and nothing else:
 
 ```
-LUCKY-20|MINE|<TICKER>
+{"p":"lucky-20","op":"mine","tick":"<TICKER>"}
 ```
 
 It states no amount. When the transaction confirms, its yield is read from the hash of the block that contains it, written the way Bitcoin nodes and block explorers print it. Only the last hex digit counts:
@@ -79,7 +79,7 @@ E = (1 × 1,000 + 3 × 500 + 5 × 200 + 7 × 100) / 16
 The yield is credited to output 0 of the MINE. Here is the rule applied to the hash of Bitcoin block 0:
 
 ```
-  MINE tx      LUCKY-20|MINE|LUCKY
+  MINE tx      {"p":"lucky-20","op":"mine","tick":"LUCKY"}
      |
      |  confirmed in a Bitcoin block
      v
@@ -105,11 +105,11 @@ All MINEs confirmed in the same block share one block hash, so they all receive 
 
 ## 4. Supply and Fair Launch
 
-Every ticker has a supply of exactly 21,000,000 tokens. The supply is fixed by the rules. It is not a field of any payload, and a deployer cannot set another number. There is no premine and no allocation: the deployer receives no tokens. Every token of every ticker comes from a MINE.
+Every ticker has a supply of exactly 21,000,000 tokens. The supply is fixed by the rules. It is not a key of any payload, and a deployer cannot set another number. There is no premine and no allocation: the deployer receives no tokens. Every token of every ticker comes from a MINE.
 
 Minting is open. Anyone can mine any registered ticker, from any address, as often as they like. There is no per-address cap. This also means that a large minter can mint a large part of a supply. The remaining supply is public at every block, so every participant can see how close the cap is.
 
-Minting starts in the block after the reveal. A MINE in the same block as the ticker's REVEAL is invalid and credits nothing, whoever sends it, the deployer included. Nobody can mine a ticker in the block that makes it public, before anyone else can know it exists.
+Minting starts in the block after the DEPLOY. A MINE in the same block as the ticker's DEPLOY is invalid and credits nothing, whoever sends it, the deployer included. So every minter has the same first block to mine in.
 
 Each MINE is credited the smaller of its yield and the remaining supply. MINEs are credited in block order, so near the cap the earlier MINEs of a block are credited first. Every tier and the supply are multiples of 100, so the supply ends at exactly 21,000,000. A MINE confirmed after that is credited 0 but still pays its protocol fee. A wallet therefore shows the remaining supply before it builds a MINE.
 
@@ -119,52 +119,35 @@ A ticker is *minted out*, or fully minted, when its credited total reaches 21,00
 
 A ticker is 1 to 8 characters, `A`–`Z` and `0`–`9`. The first valid registration of a ticker in the chain that Bitcoin keeps is final.
 
-A deploy that names its ticker in plain text could be copied from the mempool. Someone could confirm the copy first by paying a higher fee. So a ticker is registered in two transactions:
-
-1. **COMMIT**: `LUCKY-20|COMMIT|<H>`. Output 0 is the *commit output*, paid to the committer's own address. `H` is a hash of the future reveal payload `P` and of the commit output's script `S`:
-
-   ```
-   H = SHA-256( P ‖ S )
-   ```
-
-   `P` holds the ticker and a salt of 16 random bytes, so nobody can learn the ticker from `H`. The COMMIT pays no protocol fee.
-2. **REVEAL**: `LUCKY-20|DEPLOY|<TICKER>|<SALT>`. It registers the ticker when its input 0 spends the commit output, `H` matches, the REVEAL confirms 1 to 2,016 blocks after the COMMIT, it pays the 5,460-sat protocol fee, and the ticker is still free.
+A ticker is registered by one transaction:
 
 ```
- block N       COMMIT   vout0: commit output (script S, pays the committer)
-                        OP_RETURN: LUCKY-20|COMMIT|H      H = SHA-256(P ‖ S)
-                           |
-                           |  1 to 2,016 blocks later
-                           v
- block N+k     REVEAL   input 0: spends the commit output
-                        OP_RETURN: P = LUCKY-20|DEPLOY|TICKER|SALT
-                        5,460 sats to the fee address
+{"p":"lucky-20","op":"deploy","tick":"<TICKER>"}
 ```
 
-Why a copy fails:
+The DEPLOY registers the ticker when it pays the 5,460-sat protocol fee and the ticker is still free. When two valid DEPLOYs name the same ticker, the first in block order — block height, then position in the block — registers it. The other registers nothing and still pays its protocol fee and its network fee.
 
-- A copy of `H` in someone else's COMMIT sits on another output script. To reveal it, the copier would need a payload whose hash with the copier's own script equals `H`. Finding one is not feasible. The copier does not even know the ticker or the salt.
-- A copy of a REVEAL taken from the mempool cannot spend the committer's commit output. Only the committer can sign for it.
-- A copier who commits the revealed payload under a new script must first wait for that COMMIT to confirm. By then the original REVEAL, sent with a fast fee, has normally confirmed, and the ticker is taken.
+A DEPLOY names its ticker in plain text. While it waits in the mempool, anyone can read the ticker and send a DEPLOY of the same ticker. Bitcoin miners usually put transactions that pay a higher fee rate first, so a DEPLOY that pays more normally confirms first. The app therefore checks that the ticker is still free right before signing, suggests a fast fee, and can speed up a pending DEPLOY by replacing it with one that pays more. A registration is final once its block has 6 confirmations.
 
-The deployer is the committer: the address that the commit output pays. When two valid REVEALs name the same ticker, the first in block order registers it. The age of the COMMIT gives no priority.
+The deployer is the address that signed the whole DEPLOY transaction and put the most bitcoin into it. The deployer receives no tokens.
 
 ## 6. Moving Tokens
 
 ```
-LUCKY-20|SEND|<TICKER>|<AMT>|<TO_OUT>|<CHANGE_OUT>
+{"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}
 ```
 
-A SEND moves `AMT` whole tokens of one ticker to output `TO_OUT`. Everything else in the input pool goes to output `CHANGE_OUT`: the rest of that ticker and all of every other ticker. The two indices must differ. Amounts are whole numbers from 1 to 21,000,000.
+A SEND moves `AMT` whole tokens of one ticker to output 1. Everything else in the input pool goes to output 2: the rest of that ticker and all of every other ticker. The outputs are fixed; the payload names none. Amounts are whole numbers from 1 to 21,000,000, written in quotes.
 
 ```
 inputs     { LUCKY: 1,500, ABC: 500 }
-payload    LUCKY-20|SEND|LUCKY|1200|0|3
-vout0      { LUCKY: 1,200 }             the recipient
-vout3      { LUCKY: 300, ABC: 500 }     back to the sender
+payload    {"p":"lucky-20","op":"send","tick":"LUCKY","amt":"1200"}
+vout0      546 sats to the fee address
+vout1      { LUCKY: 1,200 }             the recipient
+vout2      { LUCKY: 300, ABC: 500 }     back to the sender
 ```
 
-A SEND applies only when the pool holds at least `AMT`, output `TO_OUT` exists and is not an OP_RETURN output, and the fee output is present. Otherwise nothing moves to `TO_OUT`, and the whole pool goes to `CHANGE_OUT`. If output `CHANGE_OUT` is missing or is an OP_RETURN output, what it would receive goes to the transaction's first output that is not an OP_RETURN output.
+A SEND applies only when the pool holds at least `AMT`, output 1 exists and is not an OP_RETURN output, and the fee output is present. Otherwise nothing moves to output 1, and the whole pool goes to output 2. If output 2 is missing or is an OP_RETURN output, what it would receive goes to the transaction's first output that is not an OP_RETURN output.
 
 Because routing is per ticker, one SEND can split a token output that holds several tickers. And because of default routing (Section 2), tokens also move with any Bitcoin transaction that spends them, even one built by a wallet that knows nothing about LUCKY-20.
 
@@ -173,7 +156,7 @@ Because routing is per ticker, one SEND can split a token output that holds seve
 Bitcoin has no contract that can hold tokens during a sale. A LUCKY-20 trade is therefore one Bitcoin transaction built by two people:
 
 - **Listing.** The seller signs a transaction with one input, the token output, and one output, the price paid to the seller's own script. The signature type is `SIGHASH_SINGLE | SIGHASH_ANYONECANPAY`. It covers only that input and that output, so the listing is valid only inside a transaction that pays the seller in full.
-- **Fill.** A buyer adds BTC inputs and the outputs that make the transaction a SEND of the tokens to the buyer, then signs and broadcasts it. In one transaction the seller is paid and the buyer receives the tokens. If it does not confirm, nothing moves.
+- **Fill.** A buyer adds BTC inputs and the outputs that make the transaction a SEND of the tokens to the buyer, including the 546-sat protocol fee, then signs and broadcasts it. In one transaction the seller is paid and the buyer receives the tokens. If it does not confirm, nothing moves.
 - **Cancel.** A signed listing stays valid for anyone who holds it, so an off-chain cancel means nothing. The seller cancels by moving the tokens on-chain with a SEND back to the seller.
 
 ```
@@ -182,13 +165,15 @@ Bitcoin has no contract that can hold tokens during a sale. A LUCKY-20 trade is 
  out0  price -> seller                  in1+  the buyer's BTC
                                         out0  price -> seller
                                         out1  546 sats -> buyer (the tokens)
-                                        out2  546 sats -> fee address
-                                        out3  OP_RETURN  LUCKY-20|SEND|<TICKER>|1200|1|4
-                                        out4  546 sats -> buyer (residual)
+                                        out2  546 sats -> buyer (residual)
+                                        out3  546 sats -> fee address
+                                        out4  OP_RETURN {"p":"lucky-20","op":"send","tick":"<TICKER>","amt":"<AMT>"}
                                         out5  BTC change -> buyer
 ```
 
 A listing sells the whole balance of one ticker on one token output. To sell part of a balance, the seller first splits it with a SEND back to the seller. If two buyers fill the same listing, only one transaction can confirm, and the other buyer spends nothing.
+
+The fee is part of the sale. The listed input carries the seller's `SIGHASH_SINGLE | SIGHASH_ANYONECANPAY` signature, and tokens on such an input move only with a SEND of their own ticker that is applied, fee included. A transaction that spends a listing any other way — without the 546-sat fee output, with a SEND that does not apply or a SEND of another ticker, with another payload or with none — still pays the seller the price, because the listing's signature requires it, and the tokens stay with the seller on that payment output. It is recorded as a self-trade, with the seller as the buyer. One SEND and one fee output serve every listing of that ticker in the transaction, so a transaction that completes several listings of one ticker pays the fee once.
 
 **The market opens when a ticker is minted out and the block that completed its supply has 6 confirmations**, about an hour later. Before that, the order book accepts no listing of the ticker. While anyone can still mint the ticker for the fee, a listing would put a price on something anyone can mint. It would also let a deployer sell into a distribution that is not finished. The wait of 6 confirmations means that a reorganization shallower than 6 blocks can no longer change the amounts the listings sell (Section 8).
 
@@ -221,8 +206,7 @@ A buyer checks a listed token output the same way. The buyer fetches the transac
 
 | Operation | Protocol fee |
 | --- | --- |
-| COMMIT | none |
-| DEPLOY (reveal) | 5,460 sats |
+| DEPLOY | 5,460 sats |
 | MINE | 546 sats |
 | SEND (a fill is a SEND) | 546 sats |
 
@@ -232,7 +216,7 @@ A protocol fee is one output of exactly that amount to the published fee address
 bc1phk23psaqmq4rlsjeet79xpt65n9v2hvrv97ezc6c4rpld4s2shwqa9qx9n
 ```
 
-An output of any other amount does not count. The fees are fixed by the rules. They do not depend on amounts or prices. Without its fee output, an operation does not take effect: a MINE credits nothing, a SEND moves nothing to `TO_OUT`, and a reveal registers nothing. A MINE pays its fee even when no supply remains.
+An output of any other amount does not count. The fees are fixed by the rules. They do not depend on amounts or prices. Without its fee output, an operation does not take effect: a MINE credits nothing, a SEND moves nothing to output 1, and a DEPLOY registers nothing. A MINE pays its fee even when no supply remains.
 
 The Bitcoin network fee is separate, as in any Bitcoin transaction. A reference MINE has two 546-sat outputs: the token output, which the minter keeps, and the protocol fee. The network fee is paid in addition.
 
@@ -257,7 +241,7 @@ The Bitcoin network fee is separate, as in any Bitcoin transaction. A reference 
 
 ## 11. Conclusion
 
-We have described a token standard on Bitcoin in which no person sets the mint amounts. Each MINE is credited 100, 200, 500 or 1,000 tokens, 262.5 on average, by the outcome of the hash of the block that confirms it. The minter, the deployer and the project cannot choose that value, and anyone can check it. Each ticker has a fixed supply of 21,000,000, minted openly with no premine, no allocation and no per-address cap. Operations are small OP_RETURN payloads, and tokens sit on Bitcoin outputs. Ticker registration uses a commit and a reveal bound to the committer's own script, so it cannot be copied. Tokens of a minted-out ticker trade through seller-signed listings that settle in one on-chain transaction. The whole state can be recomputed from Bitcoin blocks alone.
+We have described a token standard on Bitcoin in which no person sets the mint amounts. Each MINE is credited 100, 200, 500 or 1,000 tokens, 262.5 on average, by the outcome of the hash of the block that confirms it. The minter, the deployer and the project cannot choose that value, and anyone can check it. Each ticker has a fixed supply of 21,000,000, minted openly with no premine, no allocation and no per-address cap. Operations are small JSON payloads in OP_RETURN outputs, and tokens sit on Bitcoin outputs. A ticker is registered by the first valid DEPLOY in block order. Tokens of a minted-out ticker trade through seller-signed listings that settle in one on-chain transaction, and every sale pays the protocol fee. The whole state can be recomputed from Bitcoin blocks alone.
 
 ---
 
