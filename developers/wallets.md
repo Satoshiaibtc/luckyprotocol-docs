@@ -37,7 +37,7 @@ If a token output is used to pay fees, its tokens go wherever that transaction r
 
 - Show the **remaining supply** before building a MINE. After the supply is used up, a MINE still pays the 546-sat fee and is credited 0.
 - Output 0 receives the yield. Pay it to the user's own address.
-- Offer MINE only after the ticker's DEPLOY has **2** confirmations: a MINE in the same block as the DEPLOY is invalid, and after a one-block reorganization a MINE sent at the first confirmation can confirm in the DEPLOY's block or before it, and still pay its fees.
+- Offer MINE once the ticker's DEPLOY has confirmed: a MINE in the same block as the DEPLOY is invalid. A one-block reorganization that moves the DEPLOY can still leave a MINE sent at its first confirmation in the DEPLOY's block or before it; that MINE pays its fees and is credited nothing.
 - The credit is known only after the MINE confirms. Show it from the last hex digit of the confirming block's hash. It can still change if that block is replaced, so show it as provisional until the block has 6 confirmations.
 
 ## Send
