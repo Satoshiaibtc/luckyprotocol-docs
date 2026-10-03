@@ -38,7 +38,7 @@ There is no supply key and no amount key. The supply is always 21,000,000, and t
 
 A DEPLOY that fails either rule registers nothing. A later valid DEPLOY of the same ticker can still register it.
 
-Transactions confirmed below block 969,600 do nothing.
+Transactions confirmed below block 969,696 do nothing.
 
 ## Notes
 

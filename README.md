@@ -1,6 +1,6 @@
 # LUCKY-20: Fair-Launch Tokens Minted by the Bitcoin Block Hash
 
-LuckyProtocol · [luckyprotocolai.com](https://luckyprotocolai.com) · Activation at Bitcoin block 969,600
+LuckyProtocol · [luckyprotocolai.com](https://luckyprotocolai.com) · Activation at Bitcoin block 969,696
 
 **Abstract.** A token on Bitcoin should not let any person decide who receives how much. In most token standards, people set the amounts: a deployer picks the supply and may keep a share, and each minter picks how much to claim. LUCKY-20 lets Bitcoin decide. A MINE transaction names a ticker and nothing else. The last hex digit of the hash of the block that confirms it sets the credit: 100, 200, 500 or 1,000 tokens, 262.5 on average. The minter, the deployer and the project cannot choose that hash, and anyone can check it from public block data. Every ticker has a fixed supply of 21,000,000 tokens, with no premine, no allocation and no per-address cap. Each operation is one small JSON payload in an OP_RETURN output of an ordinary Bitcoin transaction, and tokens sit on Bitcoin outputs: there is no inscription, no sidechain and no bridge. A new ticker is registered by one DEPLOY transaction; the first valid DEPLOY in block order registers it. When a ticker is fully minted, its tokens trade through seller-signed listings that settle atomically on-chain, with no custodian.
 
@@ -12,7 +12,7 @@ LuckyProtocol · [luckyprotocolai.com](https://luckyprotocolai.com) · Activatio
 - **One-transaction deploys.** A single DEPLOY transaction registers a ticker; when several name it, the first valid one in block order registers it. A pending DEPLOY is visible in the mempool, so the app suggests a fast fee and can speed it up.
 - **Non-custodial market.** A seller signs a listing. A buyer completes it into one on-chain transaction that pays the seller and moves the tokens together. A ticker's market opens only when it is fully minted and the block that completed its supply has 6 confirmations. Every sale pays the 546-sat SEND fee: without it the seller is paid and keeps the tokens.
 - **Fixed, public fees.** 546 sats per MINE or SEND and 5,460 sats per deploy, each paid as an exact output to one published address.
-- **Open to verification.** Every balance follows from Bitcoin blocks, starting at block 969,600. Anyone can recompute it.
+- **Open to verification.** Every balance follows from Bitcoin blocks, starting at block 969,696. Anyone can recompute it.
 
 ## 1. Introduction
 
@@ -223,7 +223,7 @@ Nobody holds funds or tokens for anyone: not the app, not the order book. There 
 
 The state of every ticker is a function of Bitcoin blocks and the published rules. No trusted party reports it. Anyone who has the block data can recompute it:
 
-1. Start at block 969,600. Ignore every earlier block.
+1. Start at block 969,696. Ignore every earlier block.
 2. Take each transaction in block order. Read its payload, apply the rule for its operation, and route its input pool.
 3. For each MINE, take the last hex digit of the confirming block's hash and look up the tier.
 
@@ -231,7 +231,7 @@ Anyone who applies the rules to the same blocks gets the same balances. The yiel
 
 **Reorganizations and finality.** Now and then Bitcoin replaces its newest block with a competing one. This is a reorganization. LUCKY-20 always follows the chain that Bitcoin keeps: the effects of the replaced block are undone, and the new blocks are applied by the same rules. If the block that confirmed a MINE is replaced, the MINE is credited again from the hash of the block that confirms it in the new chain, so its tier can change. Near the cap its credit can change or become 0, and a minted-out ticker can be minting again. Registrations, transfers and trades follow the new chain the same way. A result is final once its block has 6 confirmations, about an hour. Until then the app shows it as provisional, with its number of confirmations.
 
-A single yield can be checked by hand. The first blocks of Bitcoin show how the rule reads a hash. They are far below block 969,600 and hold no MINE:
+A single yield can be checked by hand. The first blocks of Bitcoin show how the rule reads a hash. They are far below block 969,696 and hold no MINE:
 
 | Height | Block hash | Last digit | Tier |
 | --- | --- | --- | --- |

@@ -59,4 +59,4 @@ Example: a MINE of `LUCKY` confirms in a block whose hash ends in `…a8c3`. The
 - **After the supply is used up**, a MINE is credited 0 but still pays the 546-sat fee. Check the remaining supply before you mine.
 - **Tokens on the inputs** of a MINE, of every ticker, also go to output 0, even when the MINE is invalid. They are burned only when output 0 is missing or is an OP_RETURN output. An input signed as a market listing is the exception: its tokens go to the output its signature pays.
 - **Never pay for a MINE with a token output.** See [Wallets](../developers/wallets.md#never-spend-tokens-as-fees).
-- Transactions confirmed below block 969,600 do nothing.
+- Transactions confirmed below block 969,696 do nothing.

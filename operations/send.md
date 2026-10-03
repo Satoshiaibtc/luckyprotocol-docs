@@ -66,4 +66,4 @@ vout2      { LUCKY: 300, ABC: 500 }     back to you
 - **Listed outputs.** An input signed as a market listing moves only through a SEND of its own ticker that is applied. Otherwise its tokens go to the output its signature pays, the seller's. See [Wallets](../developers/wallets.md#trading).
 - **Tokens never go to an OP_RETURN output.**
 - **A trade is a SEND.** A fill keeps the seller's payment at output 0, the tokens at output 1, the residual at output 2 and the fee at output 3. See [Wallets](../developers/wallets.md#trading).
-- Transactions confirmed below block 969,600 do nothing.
+- Transactions confirmed below block 969,696 do nothing.
